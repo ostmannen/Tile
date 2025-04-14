@@ -5,18 +5,19 @@ using UnityEngine.Tilemaps;
 
 public class TileMapManager : MonoBehaviour
 {
-    public Tilemaps tilemap;
-    public Tilemaps tilemaps;
     public Grid grid;
+    public Tilemap tilemap;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        tilemap = GetComponent<Tilemap>();
+        tilemap.ClearAllTiles();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
