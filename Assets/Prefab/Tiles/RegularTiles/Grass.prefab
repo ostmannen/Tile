@@ -26,17 +26,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -11.62
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 26.52
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -55.823997
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
@@ -75,13 +75,33 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
+        type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 1d8f0b5971a0ea446bfabb70733070af, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
+        type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8f463c3aebecd6e49a7b7ffedad3c748, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
+        type: 3}
+      propertyPath: m_Materials.Array.data[2]
+      value: 
+      objectReference: {fileID: 2100000, guid: f1c713d1c099140438621fa32f1b2e38, type: 2}
     - target: {fileID: 919132149155446097, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
       propertyPath: m_Name
-      value: hexagon 3
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
+        type: 3}
+      propertyPath: m_TagString
+      value: Grass
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

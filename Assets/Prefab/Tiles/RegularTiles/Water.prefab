@@ -81,7 +81,12 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
         type: 3}
       propertyPath: m_Name
-      value: hexagon 1
+      value: Water
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3e7ada6f0a361fc4f9cc9c00ac21163f,
+        type: 3}
+      propertyPath: m_TagString
+      value: Water
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
