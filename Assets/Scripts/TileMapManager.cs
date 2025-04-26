@@ -34,6 +34,10 @@ public class TileMapManager : MonoBehaviour
             CreateMap();
         }
     }
+    public void GetTile(Vector3Int pos){
+        grid.WorldToCell(pos);
+        tilemap.GetTile(pos);
+    }
     public void CreateMap()
     {
         ClearPlacedGameObjects();
