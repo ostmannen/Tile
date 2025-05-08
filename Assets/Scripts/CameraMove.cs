@@ -17,12 +17,22 @@ public class CameraMove : MonoBehaviour
     public Vector2 position;
     private Vector2 _downPosition;
 
+    [Header("PlaceObject")]
+    private bool _moving = false;
+    private GameObject _selectedObject;
+    public GameObject placeObejct;
+
 
     void Awake()
     {
         _resetCamera = transform.position;
     }
+    void Update()
+    {
+        if (!_moving) return;
 
+        _selectedObject.transform.position = GetWorldPositionOnGround(position);
+    }
     private void LateUpdate()
     {
         if (!_drag) return;
@@ -67,7 +77,21 @@ public class CameraMove : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _onClickLayerMask, QueryTriggerInteraction.Ignore))
         {
-           
+            if (_selectedObject == null)
+            {
+                IClickable clickable = hit.collider.gameObject.GetComponent<IClickable>();
+                if (clickable != null && clickable.OnClick())
+                {
+                    _moving = true;
+                    _selectedObject = hit.collider.gameObject;
+                }
+                //Instantiate(placeObejct, hit.collider.transform.position + (hit.collider.transform.position.y / 2) * Vector3.up, Quaternion.identity);
+            }
+            else {
+                _selectedObject.transform.position = hit.transform.position;
+                _selectedObject = null;
+                _moving = false;
+            }
         }
     }
 

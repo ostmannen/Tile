@@ -16,10 +16,16 @@ public class ShaderInheritMaterial : MonoBehaviour
         mR = GetComponent<MeshRenderer>();
         selected = false;
         mR.materials[1].SetColor("_BaseColour", mR.materials[0].color);
-    }
 
-    // Update is called once per frame
-    void Update()
+        SetMaterial();
+    }
+    public void Select()
+    {
+        selected = !selected;
+
+        SetMaterial();
+    }
+    private void SetMaterial()
     {
         if (selected)
         {
@@ -32,7 +38,11 @@ public class ShaderInheritMaterial : MonoBehaviour
         else
         {
             mR.materials[1].SetFloat("_selected", 0);
-            mR.materials[2].SetFloat("_selected", 0);
+           mR.materials[2].SetFloat("_selected", 0);
         }
+    }
+    private void OnValidate()
+    {
+        //SetMaterial();
     }
 }

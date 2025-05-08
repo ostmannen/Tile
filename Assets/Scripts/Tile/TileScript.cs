@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class TileScript : MonoBehaviour
+public class TileScript : MonoBehaviour, IClickable
 {
     private TileEnum tileEnum;
 
-    public GameObject OnClick()
+    public bool OnClick()
     {
-        return this.gameObject;
+        return false;
     }
     void Start()
     {
