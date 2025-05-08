@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TileScript : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class TileScript : MonoBehaviour
     }
     void Start()
     {
+        /*
         if (tileEnum == TileEnum.Grass){
             transform.tag = "Grass";
         }
@@ -23,6 +25,6 @@ public class TileScript : MonoBehaviour
         }
         else if (tileEnum == TileEnum.Water){
             transform.tag = "Water";
-        }
+        }*/
     }
 }
