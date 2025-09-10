@@ -12,8 +12,12 @@ public class GUI_CreateTiles : Editor
 
         TileMapManager manager = (TileMapManager)target;
 
-        if (GUILayout.Button("Create Map")){
+        if (GUILayout.Button("Create Map"))
+        {
             manager.CreateMap();
+        }
+        if (GUILayout.Button("Create Map With Jobs")){
+            manager.CreateMap2();
         }
     }
 }
