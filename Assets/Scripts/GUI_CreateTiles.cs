@@ -19,5 +19,8 @@ public class GUI_CreateTiles : Editor
         if (GUILayout.Button("Create Map With Jobs")){
             manager.CreateMap2();
         }
+        if (GUILayout.Button("ClearMap")){
+            manager.ClearPlacedGameObjects();
+        }
     }
 }

@@ -10,6 +10,7 @@ public class TileMapManager : MonoBehaviour
 {
     public Tilemap tilemap;
     public Grid grid;
+    public Transform tileHolder;
     [Header("Tiles")]
     public GameObject grass;
     public GameObject sand;
@@ -54,10 +55,12 @@ public class TileMapManager : MonoBehaviour
         PlaceObject();
         Debug.Log((Time.realtimeSinceStartup - temp) * 100);
     }
-    void ClearPlacedGameObjects()
+    public void ClearPlacedGameObjects()
     {
+        if (tileHolder == null) return;
+
         var children = new List<GameObject>();
-        foreach (Transform child in transform) children.Add(child.gameObject);
+        foreach (Transform child in tileHolder) children.Add(child.gameObject);
         children.ForEach(child => DestroyImmediate(child));
     }
     void PlaceObject()
@@ -80,21 +83,21 @@ public class TileMapManager : MonoBehaviour
                 Vector3 worldPosition = grid.CellToWorld(cell);
                 if (value > _noiseThresholdMountain)
                 {
-                    Instantiate(mountain, worldPosition + new Vector3(0, (value + (Random.Range(0, 0.4f))) * _heightMultiplyerMountain, 0), sand.transform.rotation, transform);
+                    Instantiate(mountain, worldPosition + new Vector3(0, (value + (Random.Range(0, 0.4f))) * _heightMultiplyerMountain, 0), sand.transform.rotation, tileHolder);
                     //Instantiate(mountain, worldPosition + new Vector3(0, (value) * _heightMultiplyerMountain, 0), sand.transform.rotation, transform);
                 }
                 else if (value > _noiseThresholdGrass)
                 {
-                    Instantiate(grass, worldPosition + new Vector3(0, (value + Random.Range(-0.03f, 0.03f)) * _heightMultiplyerGrass, 0), sand.transform.rotation, transform);
+                    Instantiate(grass, worldPosition + new Vector3(0, (value + Random.Range(-0.03f, 0.03f)) * _heightMultiplyerGrass, 0), sand.transform.rotation, tileHolder);
                 }
                 else if (value > _noiseThresholdSand)
                 {
-                    Instantiate(sand, worldPosition + new Vector3(0, value * _heightMultiplyerSand, 0), sand.transform.rotation, transform);
+                    Instantiate(sand, worldPosition + new Vector3(0, value * _heightMultiplyerSand, 0), sand.transform.rotation, tileHolder);
                 }
                 else
                 {
                     Instantiate(water, worldPosition + new Vector3(0, value * _heightMultiplyerWater, 0),
-                    sand.transform.rotation, transform);
+                    sand.transform.rotation, tileHolder);
                 }
             }
         }
@@ -105,8 +108,8 @@ public class TileMapManager : MonoBehaviour
 
         ClearPlacedGameObjects();
 
-        int size = (range * 2 + 1);
-        int totalTiles = size * size;
+        int diameter = (range * 2 + 1);
+        int totalTiles = diameter * diameter;
 
         NativeArray<int> tileTypes = new NativeArray<int>(totalTiles, Allocator.TempJob);
         NativeArray<float> tileHeights = new NativeArray<float>(totalTiles, Allocator.TempJob);
@@ -117,11 +120,12 @@ public class TileMapManager : MonoBehaviour
             tileHeights = tileHeights,
 
             range = range,
-            noiseFrequency = _noiseFrequency,
-            noiseThresholdMountain = _noiseThresholdMountain,
-            noiseThresholdGrass = _noiseThresholdGrass,
-            noiseThresholdSand = _noiseThresholdSand,
             noiseOffset = Random.Range(0, 1000000),
+            noiseFrequency = _noiseFrequency,
+
+            thresholdMountain = _noiseThresholdMountain,
+            thresholdGrass = _noiseThresholdGrass,
+            thresholdSand = _noiseThresholdSand,
 
             heightMultiplierMountain = _heightMultiplyerMountain,
             heightMultiplierGrass = _heightMultiplyerGrass,
@@ -133,13 +137,12 @@ public class TileMapManager : MonoBehaviour
         handle.Complete();
 
         float hexWidth = 1f;
-        float hexHeight = Mathf.Sqrt(3f) / 2f * hexWidth;
+        float hexHeight = Mathf.Sqrt(3f) * 0.5f * hexWidth;
 
         for (int i = 0; i < totalTiles; i++)
         {
-            if (tileTypes[i] == -1) continue; // skip invalid
+            if (tileTypes[i] == -1) continue;
 
-            int diameter = range * 2 + 1;
             int q = (i % diameter) - range;
             int r = (i / diameter) - range;
 
@@ -158,12 +161,11 @@ public class TileMapManager : MonoBehaviour
             }
 
             if (prefab != null)
-                Instantiate(prefab, worldPos, prefab.transform.rotation, transform);
+                Instantiate(prefab, worldPos, sand.transform.rotation, tileHolder);
         }
 
         tileTypes.Dispose();
         tileHeights.Dispose();
-
         Debug.Log((Time.realtimeSinceStartup - temp) * 100);
     }
 }
