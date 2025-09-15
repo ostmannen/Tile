@@ -25,6 +25,7 @@ public struct TileMapGenerationJob : IJobParallelFor
     public void Execute(int index)
     {
         int diameter = range * 2 + 1;
+        
         int q = (index % diameter) - range;
         int r = (index / diameter) - range;
 
