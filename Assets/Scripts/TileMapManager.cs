@@ -1,10 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Tilemaps;
 using Unity.Jobs;
+using System.Collections.Generic;
+using Unity.Mathematics;
+
 public class TileMapManager : MonoBehaviour
 {
     public ObjectPool pool;
@@ -21,6 +22,11 @@ public class TileMapManager : MonoBehaviour
     [SerializeField] private float _noiseThresholdMountain = 0.5f;
     [SerializeField] private float _noiseThresholdGrass = 0.5f;
     [SerializeField] private float _noiseThresholdSand = 0.5f;
+    [Header("Layered Noise")]
+    [SerializeField] private int octaves = 1;
+    [SerializeField] private float persistence = 0.5f;
+    [SerializeField] private float _lacunarity = 2f;
+
     [Header("Tile Position")]
     [SerializeField] private float _heightMultiplyerMountain = 2f;
     [SerializeField] private float _heightMultiplyerGrass = 2f;
@@ -50,10 +56,11 @@ public class TileMapManager : MonoBehaviour
     }
     public void CreateMap()
     {
-        var temp = Time.realtimeSinceStartup;
+        /*var temp = Time.realtimeSinceStartup;
         pool.ReturnAll();
         PlaceObject();
-        Debug.Log((Time.realtimeSinceStartup - temp) * 100);
+        Debug.Log((Time.realtimeSinceStartup - temp) * 100);*/
+        CreateMap3();
     }
     public void ClearPlacedGameObjects()
     {
@@ -65,7 +72,7 @@ public class TileMapManager : MonoBehaviour
     }
     void PlaceObject()
     {
-        int noiseOffset = Random.Range(0, 1000000);
+        int noiseOffset = UnityEngine.Random.Range(0, 1000000);
         int size = range * 2 + 1;
 
         for (int y = -range; y <= range; y++)
@@ -83,12 +90,12 @@ public class TileMapManager : MonoBehaviour
                 Vector3 worldPosition = grid.CellToWorld(cell);
                 if (value > _noiseThresholdMountain)
                 {
-                    pool.Get(TileEnum.mountain, worldPosition + new Vector3(0, (value + (Random.Range(0, 0.4f)))
+                    pool.Get(TileEnum.mountain, worldPosition + new Vector3(0, (value + (UnityEngine.Random.Range(0, 0.4f)))
                     * _heightMultiplyerMountain, 0), sand.transform.rotation);
                 }
                 else if (value > _noiseThresholdGrass)
                 {
-                    pool.Get(TileEnum.Grass, worldPosition + new Vector3(0, (value + Random.Range(-0.03f, 0.03f))
+                    pool.Get(TileEnum.Grass, worldPosition + new Vector3(0, (value + UnityEngine.Random.Range(-0.03f, 0.03f))
                     * _heightMultiplyerGrass, 0), sand.transform.rotation);
                 }
                 else if (value > _noiseThresholdSand)
@@ -102,49 +109,103 @@ public class TileMapManager : MonoBehaviour
             }
         }
     }
-    public void CreateMap2()
+    public void CreateMap3()
     {
         var temp = Time.realtimeSinceStartup;
 
         pool.ReturnAll();
 
-        int diameter = (range * 2 + 1);
-        int totalTiles = diameter * diameter;
+        int totalTiles = 3 * range * (range + 1) + 1;
+        int noiseOffset = 12345;
 
-        NativeArray<int> tileTypes = new NativeArray<int>(totalTiles, Allocator.TempJob);
-        NativeArray<float> tileHeights = new NativeArray<float>(totalTiles, Allocator.TempJob);
+        NativeArray<int> tileTypes = new NativeArray<int>(totalTiles, Allocator.Temp);
+        NativeArray<float> tileHeights = new NativeArray<float>(totalTiles, Allocator.Temp);
+        NativeArray<int2> tileCoords = new NativeArray<int2>(totalTiles, Allocator.Temp);
 
-        var job = new TileMapGenerationJob
+        //Creates tilecords
+        int index = 0;
+        for (int q = -range; q <= range; q++)
         {
-            tileTypes = tileTypes,
-            tileHeights = tileHeights,
+            for (int r = -range; r <= range; r++)
+            {
+                int s = -q - r;
+                if (math.abs(s) > range) continue;
 
-            range = range,
-            noiseOffset = Random.Range(0, 1000000),
-            noiseFrequency = _noiseFrequency,
+                tileCoords[index] = new int2(q, r);
+                index++;
+            }
+        }
 
-            thresholdMountain = _noiseThresholdMountain,
-            thresholdGrass = _noiseThresholdGrass,
-            thresholdSand = _noiseThresholdSand,
+        if (index != totalTiles)
+        {
+            Debug.LogWarning($"Tile coord count mismatch: idx={index} totalTiles={totalTiles}");
+            totalTiles = index;
+        }
 
-            heightMultiplierMountain = _heightMultiplyerMountain,
-            heightMultiplierGrass = _heightMultiplyerGrass,
-            heightMultiplierSand = _heightMultiplyerSand,
-            heightMultiplierWater = _heightMultiplyerWater
-        };
+        for (int i = 0; i < totalTiles; i++)
+        {
+            int2 qr = tileCoords[i];
+            float2 pos = new float2(qr.x, qr.y);
 
-        JobHandle handle = job.Schedule(totalTiles, 64);
-        handle.Complete();
+            float total = 0f;
+            float amplitude = 1f;
+            float frequency = _noiseFrequency;
+            float maxValue = 0f;
+
+            for (int o = 0; o < octaves; o++)
+            {
+                if (frequency <= 0.0001f) frequency = 0.0001f;
+
+                float2 samplePos = (pos / frequency) + noiseOffset;
+                float n = noise.snoise(samplePos);
+
+                if (float.IsNaN(n) || float.IsInfinity(n)) n = 0;
+
+                total += n * amplitude;
+
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= _lacunarity;
+            }
+
+            float value = (total / maxValue) * 0.5f + 0.5f;
+
+            int type;
+            float height;
+
+            if (value > _noiseThresholdMountain)
+            {
+                type = 3;
+                height = value * _heightMultiplyerMountain;
+            }
+            else if (value > _noiseThresholdGrass)
+            {
+                type = 2;
+                height = value * _heightMultiplyerGrass;
+            }
+            else if (value > _noiseThresholdSand)
+            {
+                type = 1;
+                height = value * _heightMultiplyerSand;
+            }
+            else
+            {
+                type = 0;
+                height = value * _heightMultiplyerWater;
+            }
+
+            tileTypes[i] = type;
+            tileHeights[i] = height;
+        }
 
         float hexWidth = 1f;
         float hexHeight = Mathf.Sqrt(3f) * 0.5f * hexWidth;
 
         for (int i = 0; i < totalTiles; i++)
         {
-            if (tileTypes[i] == -1) continue;
-
-            int q = (i % diameter) - range;
-            int r = (i / diameter) - range;
+            int2 qr2 = tileCoords[i];
+            int q = qr2.x;
+            int r = qr2.y;
 
             float worldX = hexWidth * (q + r * 0.5f);
             float worldZ = hexHeight * r;
@@ -164,8 +225,104 @@ public class TileMapManager : MonoBehaviour
             pool.Get(prefab, worldPos, sand.transform.rotation);
         }
 
+        tileCoords.Dispose();
         tileTypes.Dispose();
         tileHeights.Dispose();
+
+        Debug.Log((Time.realtimeSinceStartup - temp) * 100);
+    }
+
+
+    public void CreateMap2()
+    {
+        var temp = Time.realtimeSinceStartup;
+
+        pool.ReturnAll();
+
+        int totalTiles = 3 * range * (range + 1) + 1;
+
+
+        NativeArray<int> tileTypes = new NativeArray<int>(totalTiles, Allocator.TempJob);
+        NativeArray<float> tileHeights = new NativeArray<float>(totalTiles, Allocator.TempJob);
+        NativeArray<int2> tileCoords = new NativeArray<int2>(totalTiles, Allocator.TempJob);
+
+        //Creates tilecords
+        int index = 0;
+        for (int q = -range; q <= range; q++)
+        {
+            for (int r = -range; r <= range; r++)
+            {
+                int s = -q - r;
+                if (math.abs(s) > range) continue;
+
+                tileCoords[index] = new int2(q, r);
+                index++;
+            }
+        }
+        if (index != totalTiles)
+        {
+            Debug.LogWarning($"Tile coord count mismatch: idx={index} totalTiles={totalTiles}");
+            totalTiles = index;
+        }
+
+        var job = new TileMapGenerationJob
+        {
+            tileTypes = tileTypes,
+            tileHeights = tileHeights,
+            tileCoords = tileCoords,
+
+
+            noiseOffset = 12345,
+            noiseFrequency = _noiseFrequency,
+
+            thresholdMountain = _noiseThresholdMountain,
+            thresholdGrass = _noiseThresholdGrass,
+            thresholdSand = _noiseThresholdSand,
+
+            heightMultiplierMountain = _heightMultiplyerMountain,
+            heightMultiplierGrass = _heightMultiplyerGrass,
+            heightMultiplierSand = _heightMultiplyerSand,
+            heightMultiplierWater = _heightMultiplyerWater,
+
+            octaves = octaves,
+            persistence = persistence,
+            lacunarity = _lacunarity
+        };
+
+        JobHandle handle = job.Schedule(totalTiles, 64);
+        handle.Complete();
+
+        float hexWidth = 1f;
+        float hexHeight = Mathf.Sqrt(3f) * 0.5f * hexWidth;
+
+        for (int i = 0; i < totalTiles; i++)
+        {
+            int2 qr = tileCoords[i];
+            int q = qr.x;
+            int r = qr.y;
+
+            float worldX = hexWidth * (q + r * 0.5f);
+            float worldZ = hexHeight * r;
+
+            Vector3 worldPos = new Vector3(worldX, tileHeights[i], worldZ);
+
+            TileEnum prefab;
+            switch (tileTypes[i])
+            {
+                case 3: prefab = TileEnum.mountain; break;
+                case 2: prefab = TileEnum.Grass; break;
+                case 1: prefab = TileEnum.Sand; break;
+                case 0: prefab = TileEnum.Water; break;
+                default: prefab = TileEnum.Grass; break;
+            }
+
+            pool.Get(prefab, worldPos, sand.transform.rotation);
+        }
+
+        tileCoords.Dispose();
+        tileTypes.Dispose();
+        tileHeights.Dispose();
+
         Debug.Log((Time.realtimeSinceStartup - temp) * 100);
     }
 }
