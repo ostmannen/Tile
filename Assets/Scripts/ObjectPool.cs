@@ -76,7 +76,6 @@ public class ObjectPool : MonoBehaviour
     }
     public void DestroyAll()
     {
-
         foreach (var kvp in _activeTiles)
         {
             foreach (var obj in kvp.Value)
@@ -107,6 +106,12 @@ public class ObjectPool : MonoBehaviour
             }
         }
         _pools.Clear();
+        
+        if (tileHolder == null) return;
+
+        var children = new List<GameObject>();
+        foreach (Transform child in tileHolder) children.Add(child.gameObject);
+        children.ForEach(child => DestroyImmediate(child));
     }
 }
 [System.Serializable]

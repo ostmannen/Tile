@@ -12,6 +12,7 @@ public class TileMapManager : MonoBehaviour
     public Tilemap tilemap;
     public Grid grid;
     public Transform tileHolder;
+    public CreateTileEnum createTileEnum;
     [Header("Tiles")]
     public GameObject grass;
     public GameObject sand;
@@ -42,26 +43,10 @@ public class TileMapManager : MonoBehaviour
     {
         if (_createMapOnStart)
         {
-            CreateMap2();
+            CreateMap();
         }
     }
-    public void GetTile(Vector3Int pos)
-    {
-        grid.WorldToCell(pos);
-        tilemap.GetTile(pos);
-    }
-    public void GetNeighbour(Vector3Int pos)
-    {
-        tilemap.GetTile(pos);
-    }
-    public void CreateMap()
-    {
-        /*var temp = Time.realtimeSinceStartup;
-        pool.ReturnAll();
-        PlaceObject();
-        Debug.Log((Time.realtimeSinceStartup - temp) * 100);*/
-        CreateMap3();
-    }
+
     public void ClearPlacedGameObjects()
     {
         if (tileHolder == null) return;
@@ -70,50 +55,13 @@ public class TileMapManager : MonoBehaviour
         foreach (Transform child in tileHolder) children.Add(child.gameObject);
         children.ForEach(child => DestroyImmediate(child));
     }
-    void PlaceObject()
+    public void CreateMap()
     {
-        int noiseOffset = UnityEngine.Random.Range(0, 1000000);
-        int size = range * 2 + 1;
-
-        for (int y = -range; y <= range; y++)
-        {
-            int rowLength = size - Mathf.Abs(y);
-            int xOffset = -rowLength / 2;
-
-            for (int x = 0; x < rowLength; x++)
-            {
-                int q = x + xOffset;
-                float value = Mathf.PerlinNoise((x + noiseOffset) / _noiseFrequency,
-                 (y + range + noiseOffset) / _noiseFrequency);
-
-                Vector3Int cell = new Vector3Int(q, y, 0);
-                Vector3 worldPosition = grid.CellToWorld(cell);
-                if (value > _noiseThresholdMountain)
-                {
-                    pool.Get(TileEnum.mountain, worldPosition + new Vector3(0, (value + (UnityEngine.Random.Range(0, 0.4f)))
-                    * _heightMultiplyerMountain, 0), sand.transform.rotation);
-                }
-                else if (value > _noiseThresholdGrass)
-                {
-                    pool.Get(TileEnum.Grass, worldPosition + new Vector3(0, (value + UnityEngine.Random.Range(-0.03f, 0.03f))
-                    * _heightMultiplyerGrass, 0), sand.transform.rotation);
-                }
-                else if (value > _noiseThresholdSand)
-                {
-                    pool.Get(TileEnum.Sand, worldPosition + new Vector3(0, value * _heightMultiplyerSand, 0), sand.transform.rotation);
-                }
-                else
-                {
-                    pool.Get(TileEnum.Water, worldPosition + new Vector3(0, value * _heightMultiplyerWater, 0), sand.transform.rotation);
-                }
-            }
-        }
-    }
-    public void CreateMap3()
-    {
+        Debug.Log("default");
         var temp = Time.realtimeSinceStartup;
 
         pool.ReturnAll();
+        if (createTileEnum == CreateTileEnum.Instantiate) ClearPlacedGameObjects();
 
         int totalTiles = 3 * range * (range + 1) + 1;
         int noiseOffset = 12345;
@@ -212,17 +160,35 @@ public class TileMapManager : MonoBehaviour
 
             Vector3 worldPos = new Vector3(worldX, tileHeights[i], worldZ);
 
-            TileEnum prefab;
-            switch (tileTypes[i])
+            if (createTileEnum == CreateTileEnum.Instantiate)
             {
-                case 3: prefab = TileEnum.mountain; break;
-                case 2: prefab = TileEnum.Grass; break;
-                case 1: prefab = TileEnum.Sand; break;
-                case 0: prefab = TileEnum.Water; break;
-                default: prefab = TileEnum.Grass; break;
+                switch (tileTypes[i])
+                {
+                    case 3: Instantiate(mountain, worldPos, mountain.transform.rotation, tileHolder); break;
+                    case 2: Instantiate(grass, worldPos, mountain.transform.rotation, tileHolder); break;
+                    case 1: Instantiate(sand, worldPos, mountain.transform.rotation, tileHolder); break;
+                    case 0: Instantiate(water, worldPos, mountain.transform.rotation, tileHolder); break;
+                    default: Instantiate(grass, worldPos, mountain.transform.rotation, tileHolder); break;
+                }
             }
+            else if (createTileEnum == CreateTileEnum.ObjectPool)
+            {
+                TileEnum prefab;
+                switch (tileTypes[i])
+                {
+                    case 3: prefab = TileEnum.mountain; break;
+                    case 2: prefab = TileEnum.Grass; break;
+                    case 1: prefab = TileEnum.Sand; break;
+                    case 0: prefab = TileEnum.Water; break;
+                    default: prefab = TileEnum.Grass; break;
+                }
 
-            pool.Get(prefab, worldPos, sand.transform.rotation);
+                pool.Get(prefab, worldPos, sand.transform.rotation);
+            }
+            else
+            {
+
+            }
         }
 
         tileCoords.Dispose();
@@ -231,10 +197,10 @@ public class TileMapManager : MonoBehaviour
 
         Debug.Log((Time.realtimeSinceStartup - temp) * 100);
     }
-
-
     public void CreateMap2()
     {
+        Debug.Log("parallel");
+
         var temp = Time.realtimeSinceStartup;
 
         pool.ReturnAll();
@@ -306,17 +272,35 @@ public class TileMapManager : MonoBehaviour
 
             Vector3 worldPos = new Vector3(worldX, tileHeights[i], worldZ);
 
-            TileEnum prefab;
-            switch (tileTypes[i])
+            if (createTileEnum == CreateTileEnum.Instantiate)
             {
-                case 3: prefab = TileEnum.mountain; break;
-                case 2: prefab = TileEnum.Grass; break;
-                case 1: prefab = TileEnum.Sand; break;
-                case 0: prefab = TileEnum.Water; break;
-                default: prefab = TileEnum.Grass; break;
+                switch (tileTypes[i])
+                {
+                    case 3: Instantiate(mountain, worldPos, mountain.transform.rotation, tileHolder); break;
+                    case 2: Instantiate(grass, worldPos, mountain.transform.rotation, tileHolder); break;
+                    case 1: Instantiate(sand, worldPos, mountain.transform.rotation, tileHolder); break;
+                    case 0: Instantiate(water, worldPos, mountain.transform.rotation, tileHolder); break;
+                    default: Instantiate(grass, worldPos, mountain.transform.rotation, tileHolder); break;
+                }
             }
+            else if (createTileEnum == CreateTileEnum.ObjectPool)
+            {
+                TileEnum prefab;
+                switch (tileTypes[i])
+                {
+                    case 3: prefab = TileEnum.mountain; break;
+                    case 2: prefab = TileEnum.Grass; break;
+                    case 1: prefab = TileEnum.Sand; break;
+                    case 0: prefab = TileEnum.Water; break;
+                    default: prefab = TileEnum.Grass; break;
+                }
 
-            pool.Get(prefab, worldPos, sand.transform.rotation);
+                pool.Get(prefab, worldPos, sand.transform.rotation);
+            }
+            else
+            {
+
+            }
         }
 
         tileCoords.Dispose();
