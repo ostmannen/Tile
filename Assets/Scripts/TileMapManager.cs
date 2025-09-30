@@ -84,7 +84,6 @@ public class TileMapManager : MonoBehaviour
 
         if (index != totalTiles)
         {
-            Debug.LogWarning($"Tile coord count mismatch: idx={index} totalTiles={totalTiles}");
             totalTiles = index;
         }
 
@@ -226,7 +225,7 @@ public class TileMapManager : MonoBehaviour
         }
         if (index != totalTiles)
         {
-            Debug.LogWarning($"Tile coord count mismatch: idx={index} totalTiles={totalTiles}");
+            Debug.Log("pepe popo");
             totalTiles = index;
         }
 
