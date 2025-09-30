@@ -17,7 +17,7 @@ public class GUI_CreateObjectPool : Editor
         {
             manager.CreatePoolItems();
         }
-        if (GUILayout.Button("Clear Object Pool"))
+        if (GUILayout.Button("Return Object Pool"))
         {
             manager.ReturnAll();
         }

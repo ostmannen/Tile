@@ -9,8 +9,6 @@ using Unity.Mathematics;
 public class TileMapManager : MonoBehaviour
 {
     public ObjectPool pool;
-    public Tilemap tilemap;
-    public Grid grid;
     public Transform tileHolder;
     public CreateTileEnum createTileEnum;
     [Header("Tiles")]
@@ -64,7 +62,7 @@ public class TileMapManager : MonoBehaviour
         if (createTileEnum == CreateTileEnum.Instantiate) ClearPlacedGameObjects();
 
         int totalTiles = 3 * range * (range + 1) + 1;
-        int noiseOffset = 12345;
+        int noiseOffset = UnityEngine.Random.Range(0, 10000);
 
         NativeArray<int> tileTypes = new NativeArray<int>(totalTiles, Allocator.Temp);
         NativeArray<float> tileHeights = new NativeArray<float>(totalTiles, Allocator.Temp);
@@ -204,6 +202,7 @@ public class TileMapManager : MonoBehaviour
         var temp = Time.realtimeSinceStartup;
 
         pool.ReturnAll();
+        if (createTileEnum == CreateTileEnum.Instantiate) ClearPlacedGameObjects();
 
         int totalTiles = 3 * range * (range + 1) + 1;
 
@@ -238,7 +237,7 @@ public class TileMapManager : MonoBehaviour
             tileCoords = tileCoords,
 
 
-            noiseOffset = 12345,
+            noiseOffset = UnityEngine.Random.Range(0, 10000),
             noiseFrequency = _noiseFrequency,
 
             thresholdMountain = _noiseThresholdMountain,

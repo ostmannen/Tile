@@ -12,14 +12,14 @@ public class GUI_CreateTiles : Editor
 
         TileMapManager manager = (TileMapManager)target;
 
-        if (GUILayout.Button("Create Map"))
+        if (GUILayout.Button("Create Map Default"))
         {
             manager.CreateMap();
         }
-        if (GUILayout.Button("Create Map With Jobs")){
+        if (GUILayout.Button("Create Map Parallel")){
             manager.CreateMap2();
         }
-        if (GUILayout.Button("ClearMap")){
+        if (GUILayout.Button("Destroy All!!")){
             manager.ClearPlacedGameObjects();
         }
     }
